@@ -9,13 +9,12 @@ module Lolcommits
   module Plugin
     class Twitter < Base
 
-      TWITTER_API_ENDPOINT         = 'https://api.twitter.com'.freeze
-      TWITTER_CONSUMER_KEY         = 'qc096dJJCxIiqDNUqEsqQ'.freeze
-      TWITTER_CONSUMER_SECRET      = 'rvjNdtwSr1H0TvBvjpk6c4bvrNydHmmbvv7gXZQI'.freeze
-      TWITTER_RESERVED_MEDIA_CHARS = 24
-      TWITTER_RETRIES              = 2
-      TWITTER_PIN_REGEX            = /^\d{4,}$/ # 4 or more digits
-      DEFAULT_SUFFIX               = '#lolcommits'.freeze
+      API_ENDPOINT    = 'https://api.twitter.com'.freeze
+      CONSUMER_KEY    = 'qc096dJJCxIiqDNUqEsqQ'.freeze
+      CONSUMER_SECRET = 'rvjNdtwSr1H0TvBvjpk6c4bvrNydHmmbvv7gXZQI'.freeze
+      MAX_TWEET_CHARS = (139 - 24).freeze # (139 - reserved media chars)
+      AUTH_PIN_REGEX  = /^\d{4,}$/ # 4 or more digits
+      DEFAULT_SUFFIX  = '#lolcommits'.freeze
 
       ##
       # Returns the name of the plugin. Identifies the plugin to lolcommits.
@@ -26,29 +25,34 @@ module Lolcommits
         'twitter'
       end
 
+      ##
       # Returns position(s) of when this plugin should run during the capture
       # process.
       #
-      # @return [Array] the position(s) (:precapture and/or :postcapture)
+      # @return [Array] the position(s), in this case after capture is ready
       #
       def self.runner_order
         [:captureready]
       end
 
+      ##
+      # Plugin is configured when the access token and secret exist
+      #
+      # @return [Boolean] true/false if this plugin has been configured
+      #
       def configured?
-        !configuration['enabled'].nil? &&
-          configuration['access_token'] &&
-          configuration['secret']
+        configuration['access_token'] && configuration['secret']
       end
 
       ##
-      # Prompts the user to configure text options.
+      # Prompts the user to configure plugin options.
+      # Enabled, Twitter auth, then prefix and suffix options.
       #
       # @return [Hash] a hash of configured plugin options
       #
       def configure_options!
         options = super
-        # ask user to configure tokens if enabling
+        # ask user to configure tokens (if enabling)
         if options['enabled']
           auth_config = configure_auth!
           return unless auth_config
@@ -58,52 +62,49 @@ module Lolcommits
       end
 
       ##
-      #
       # Capture ready hook, runs after lolcommits captures a snapshot and the
       # image processing has completed
       #
       # Posts the lolcommit to Twitter
       #
       def run_captureready
-        tweet = build_tweet(runner.message)
+        status = build_tweet(runner.message)
 
-        attempts = 0
         begin
-          attempts += 1
-          puts "Tweeting: #{tweet}"
-          debug "--> Tweeting! (attempt: #{attempts}, tweet length: #{tweet.length} chars)"
-          post_tweet(tweet, File.open(runner.main_image, 'r'))
+          puts "Tweeting: #{status}"
+          debug "--> Tweeting! (length: #{status.length} chars)"
+          post_tweet(status, File.open(runner.main_image, 'r'))
         rescue StandardError => e
-          debug "Tweet FAILED! #{e.class} - #{e.message}"
-          retry if attempts < TWITTER_RETRIES
-          puts "ERROR: Tweet FAILED! (after #{attempts} attempts) - #{e.message}"
+          debug "Tweeting FAILED! #{e.class} - #{e.message}"
+          puts "ERROR: Tweeting FAILED! - #{e.message}"
         end
       end
+
 
       private
 
       def post_url
         # TODO: this endpoint is deprecated, use the new approach instead
         # https://dev.twitter.com/rest/reference/post/statuses/update_with_mediath_media
-        @post_url ||= TWITTER_API_ENDPOINT + '/1.1/statuses/update_with_media.json'
+        @post_url ||= API_ENDPOINT + '/1.1/statuses/update_with_media.json'
       end
 
       def post_tweet(status, media)
         RestClient.post(
           post_url,
           {
-            'media[]' => media,
-            'status'  => status
+            'status'  => status,
+            'media[]' => media
           }, Authorization: oauth_header
         )
       end
 
       def build_tweet(commit_message)
-        prefix = config_with_default('prefix', '')
-        suffix = " #{config_with_default('suffix', DEFAULT_SUFFIX)}"
-        prefix = "#{prefix} " unless prefix.empty?
+        prefix = configuration['prefix'].to_s
+        suffix = configuration['suffix'].to_s
+        suffix = " #{configuration['suffix']}" unless suffix.empty?
 
-        available_commit_msg_size = max_tweet_size - (prefix.length + suffix.length)
+        available_commit_msg_size = MAX_TWEET_CHARS - (prefix.length + suffix.length)
         if commit_message.length > available_commit_msg_size
           commit_message = "#{commit_message[0..(available_commit_msg_size - 3)]}..."
         end
@@ -112,9 +113,9 @@ module Lolcommits
       end
 
       def configure_auth!
-        puts '---------------------------'
-        puts 'Need to grab twitter tokens'
-        puts '---------------------------'
+        puts '---------------------------------------'
+        puts 'OK, we need to setup Twitter Auth first'
+        puts '---------------------------------------'
 
         request_token = oauth_consumer.get_request_token
         rtoken        = request_token.token
@@ -125,7 +126,7 @@ module Lolcommits
         print "\n2) Enter PIN, then press enter: "
         twitter_pin = gets.strip.downcase.to_s
 
-        unless twitter_pin =~ TWITTER_PIN_REGEX
+        unless twitter_pin =~ AUTH_PIN_REGEX
           puts "\nERROR: '#{twitter_pin}' is not a valid Twitter Auth PIN"
           return
         end
@@ -140,10 +141,12 @@ module Lolcommits
         end
 
         return unless access_token.token && access_token.secret
+
         puts ''
         puts '------------------------------'
         puts 'Thanks! Twitter Auth Succeeded'
         puts '------------------------------'
+
         {
           'access_token' => access_token.token,
           'secret'       => access_token.secret
@@ -151,26 +154,28 @@ module Lolcommits
       end
 
       def configure_prefix_suffix
-        print "\n3) Prefix all tweets with something? e.g. @user (leave blank for no prefix): "
+        print "\n3) Prefix all tweets with something? e.g. @user (default: nothing): "
         prefix = gets.strip
-        print "\n4) End all tweets with something? e.g. #hashtag (leave blank for default suffix #{DEFAULT_SUFFIX}): "
+        print "\n4) End all tweets with something? e.g. #hashtag (default: #{DEFAULT_SUFFIX}): "
         suffix = gets.strip
 
         config = {}
-        config['prefix'] = prefix unless prefix.empty?
-        config['suffix'] = suffix unless suffix.empty?
+        config['prefix'] = prefix.empty? ? '' : prefix
+        config['suffix'] = suffix.empty? ? DEFAULT_SUFFIX : suffix
         config
       end
 
       def oauth_header
-        uri = Addressable::URI.parse(post_url)
-        SimpleOAuth::Header.new(:post, uri, {}, oauth_credentials)
+        @oauth_header ||= begin
+          uri = Addressable::URI.parse(post_url)
+          SimpleOAuth::Header.new(:post, uri, {}, oauth_credentials)
+        end
       end
 
       def oauth_credentials
         {
-          consumer_key: TWITTER_CONSUMER_KEY,
-          consumer_secret: TWITTER_CONSUMER_SECRET,
+          consumer_key: CONSUMER_KEY,
+          consumer_secret: CONSUMER_SECRET,
           token: configuration['access_token'],
           token_secret: configuration['secret']
         }
@@ -178,24 +183,12 @@ module Lolcommits
 
       def oauth_consumer
         @oauth_consumer ||= OAuth::Consumer.new(
-          TWITTER_CONSUMER_KEY,
-          TWITTER_CONSUMER_SECRET,
-          site: TWITTER_API_ENDPOINT,
-          request_endpoint: TWITTER_API_ENDPOINT,
+          CONSUMER_KEY,
+          CONSUMER_SECRET,
+          site: API_ENDPOINT,
+          request_endpoint: API_ENDPOINT,
           sign_in: true
         )
-      end
-
-      def config_with_default(key, default = nil)
-        if configuration[key]
-          configuration[key].strip.empty? ? default : configuration[key]
-        else
-          default
-        end
-      end
-
-      def max_tweet_size
-        139 - TWITTER_RESERVED_MEDIA_CHARS
       end
     end
   end
