@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.version       = Lolcommits::Twitter::VERSION
   spec.authors       = ["Matthew Hutchinson"]
   spec.email         = ["matt@hiddenloop.com"]
-  spec.summary       = %q{Send your lolcommit images to a Twitter account}
-  spec.description   = %q{Send your lolcommit images to a Twitter account.}
+  spec.summary       = %q{Post lolcommits to Twitter}
+  spec.description   = %q{Automatically post your lolcommits to a Twitter account}
 
   spec.homepage      = "https://github.com/lolcommits/lolcommits-twitter"
   spec.license       = "LGPL-3"
