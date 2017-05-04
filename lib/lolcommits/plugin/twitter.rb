@@ -41,7 +41,6 @@ module Twitter
     def update_status(status, media_ids: [])
       url = API_ENDPOINT + "/1.1/statuses/update.json"
       post(url, params: { status: status, media_ids: media_ids })
-      # TODO: show URL in output response['id_str']
     end
 
 
@@ -209,7 +208,9 @@ module Lolcommits
         if options['enabled']
           auth_config = configure_auth!
           return unless auth_config
-          options = options.merge(auth_config).merge(configure_prefix_suffix)
+          options = options.merge(auth_config).
+            merge(configure_prefix_suffix).
+            merge(configure_open_tweet_url)
         end
         options
       end
@@ -225,14 +226,17 @@ module Lolcommits
         status = build_tweet(runner.message)
         file   = File.open(runner.main_image, 'rb')
 
-        puts "Tweeting"
+        print "Tweeting ... "
 
         begin
           debug "--> Uploading media (#{file.size} bytes)"
           media_id = twitter_client.upload_media(file)
           debug "--> Posting status update (#{status.length} chars, media_id: #{media_id})"
-          twitter_client.update_status(status, media_ids: [media_id])
-          # TODO: puts URL to tweet on stdout
+          status_response = twitter_client.update_status(status, media_ids: [media_id])
+
+          tweet_url = status_response['entities']['media'][0]['url']
+          print "#{tweet_url}\n"
+          open_url(tweet_url) if configuration['open_tweet_url']
         rescue StandardError => e
           puts "ERROR: Tweeting FAILED! - #{e.message}"
         end
@@ -260,18 +264,29 @@ module Lolcommits
       end
 
       def configure_auth!
-        puts '---------------------------------------'
-        puts 'OK, we need to setup Twitter Auth first'
-        puts '---------------------------------------'
+        # require 'pry'; binding.pry
+        if configured?
+          print "Reset Twitter Auth ? (y/N): "
+          reset_auth = parse_user_input(gets.strip) || false
+          if !reset_auth || reset_auth =~ /^n/i
+            return configuration.select {|k,v| k =~ /^token/ }
+          end
+        end
+
+        puts "\n"
+        puts '---------------------------'
+        puts 'OK, lets setup Twitter Auth'
+        puts '---------------------------'
 
         request_token = oauth_consumer.get_request_token
         rtoken        = request_token.token
         rsecret       = request_token.secret
+        authorize_url = request_token.authorize_url
 
+        open_url(authorize_url)
         print "\n1) Please open this url in your browser to get a PIN for lolcommits:\n\n"
-        puts request_token.authorize_url
-        # TODO: use launchy (in lolcommits) to auto open this URL on supported
-        # platforms
+        puts "   #{authorize_url}"
+
         print "\n2) Enter PIN, then press enter: "
         twitter_pin = gets.strip.downcase.to_s
 
@@ -306,6 +321,15 @@ module Lolcommits
         config['prefix'] = prefix.empty? ? '' : prefix
         config['suffix'] = suffix.empty? ? DEFAULT_SUFFIX : suffix
         config
+      end
+
+      def configure_open_tweet_url
+        print "\n5) Automatically open Tweet URL after posting (default: false): "
+        { 'open_tweet_url' => parse_user_input(gets.strip) || false }
+      end
+
+      def open_url(url)
+        Lolcommits::CLI::Launcher.open_url(url)
       end
     end
   end
