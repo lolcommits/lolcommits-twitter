@@ -204,13 +204,16 @@ module Lolcommits
       #
       def configure_options!
         options = super
-        # ask user to configure tokens (if enabling)
+        # ask user to configure all options (if enabling)
         if options['enabled']
           auth_config = configure_auth!
           return unless auth_config
           options = options.merge(auth_config).
             merge(configure_prefix_suffix).
             merge(configure_open_tweet_url)
+        else
+          # retain config when disabling
+          options = configuration.merge(options)
         end
         options
       end
@@ -253,6 +256,7 @@ module Lolcommits
       def build_tweet(commit_message)
         prefix = configuration['prefix'].to_s
         suffix = configuration['suffix'].to_s
+        prefix = "#{configuration['prefix']} " unless prefix.empty?
         suffix = " #{configuration['suffix']}" unless suffix.empty?
 
         available_commit_msg_size = MAX_TWEET_CHARS - (prefix.length + suffix.length)
@@ -263,20 +267,23 @@ module Lolcommits
         "#{prefix}#{commit_message}#{suffix}"
       end
 
+      def ask_yes_or_no?(default: false)
+        yes_or_no = parse_user_input(gets.strip)
+        return default if yes_or_no.nil?
+        !!(yes_or_no =~ /^y/i)
+      end
+
       def configure_auth!
-        # require 'pry'; binding.pry
         if configured?
-          print "Reset Twitter Auth ? (y/N): "
-          reset_auth = parse_user_input(gets.strip) || false
-          if !reset_auth || reset_auth =~ /^n/i
-            return configuration.select {|k,v| k =~ /^token/ }
-          end
+          print "\n* Reset Twitter Auth ? (y/N): "
+          return configuration.select {|k,v| k =~ /^token/ } if !ask_yes_or_no?
         end
 
-        puts "\n"
-        puts '---------------------------'
-        puts 'OK, lets setup Twitter Auth'
-        puts '---------------------------'
+        puts ''
+        puts '-----------------------------------'
+        puts '    OK, lets setup Twitter Auth    '
+        puts '-----------------------------------'
+        puts ''
 
         request_token = oauth_consumer.get_request_token
         rtoken        = request_token.token
@@ -284,10 +291,10 @@ module Lolcommits
         authorize_url = request_token.authorize_url
 
         open_url(authorize_url)
-        print "\n1) Please open this url in your browser to get a PIN for lolcommits:\n\n"
+        print "* Grab a PIN from this url:\n\n"
         puts "   #{authorize_url}"
 
-        print "\n2) Enter PIN, then press enter: "
+        print "\n* Type PIN, then press Enter: "
         twitter_pin = gets.strip.downcase.to_s
 
         begin
@@ -301,9 +308,10 @@ module Lolcommits
         return unless access_token.token && access_token.secret
 
         puts ''
-        puts '------------------------------'
-        puts 'Thanks! Twitter Auth Succeeded'
-        puts '------------------------------'
+        puts '-----------------------------------'
+        puts '  Thanks, Twitter Auth Succeeded!  '
+        puts '-----------------------------------'
+        puts ''
 
         {
           'token'        => access_token.token,
@@ -312,9 +320,9 @@ module Lolcommits
       end
 
       def configure_prefix_suffix
-        print "\n3) Prefix all tweets with something? e.g. @user (default: nothing): "
+        print "\n* Prefix all tweets with something? e.g. @user (default: nothing): "
         prefix = gets.strip
-        print "\n4) End all tweets with something? e.g. #hashtag (default: #{DEFAULT_SUFFIX}): "
+        print "\n* End all tweets with something? e.g. #hashtag (default: #{DEFAULT_SUFFIX}): "
         suffix = gets.strip
 
         config = {}
@@ -324,8 +332,8 @@ module Lolcommits
       end
 
       def configure_open_tweet_url
-        print "\n5) Automatically open Tweet URL after posting (default: false): "
-        { 'open_tweet_url' => parse_user_input(gets.strip) || false }
+        print "\n* Automatically open Tweet URL after posting (y/N): "
+        { 'open_tweet_url' => ask_yes_or_no? }
       end
 
       def open_url(url)
