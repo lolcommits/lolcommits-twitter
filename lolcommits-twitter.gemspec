@@ -35,10 +35,12 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "simple_oauth"
   spec.add_runtime_dependency "addressable"
 
-  spec.add_development_dependency "lolcommits", ">= 0.9.4" # TODO change to 0.9.5 on launch
+  # spec.add_development_dependency "lolcommits", ">= 0.9.4" # TODO change to 0.9.5 on launch
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake"
   spec.add_development_dependency "minitest"
   spec.add_development_dependency "simplecov"
   spec.add_development_dependency "coveralls"
+  spec.add_development_dependency "webmock"
+  spec.add_development_dependency "pry"
 end

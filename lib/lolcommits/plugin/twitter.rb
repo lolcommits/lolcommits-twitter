@@ -1,4 +1,5 @@
 require 'lolcommits/plugin/base'
+require 'lolcommits/cli/launcher'
 require 'lolcommits/twitter/client'
 
 module Lolcommits
@@ -32,7 +33,7 @@ module Lolcommits
       # @return [Boolean] true/false if the plugin has been configured
       #
       def configured?
-        configuration['token'] && configuration['token_secret']
+        !!(configuration['token'] && configuration['token_secret'])
       end
 
       ##

@@ -32,9 +32,17 @@ describe Lolcommits::Plugin::Twitter do
     def valid_enabled_config
       @config ||= OpenStruct.new(
         read_configuration: {
-          plugin.class.name => { 'enabled' => true }
+          plugin.class.name => {
+            'enabled'      => true,
+            'token'        => 'abc-xyz',
+            'token_secret' => '123XYZ'
+          }
         }
       )
+    end
+
+    def twitter_client
+      Lolcommits::Twitter::Client
     end
 
     describe 'initalizing' do
@@ -45,8 +53,8 @@ describe Lolcommits::Plugin::Twitter do
     end
 
     describe '#enabled?' do
-      it 'should be true by default' do
-        plugin.enabled?.must_equal true
+      it 'should be false by default' do
+        plugin.enabled?.must_equal false
       end
 
       it 'should true when configured' do
@@ -60,36 +68,42 @@ describe Lolcommits::Plugin::Twitter do
         plugin.configured?.must_equal false
       end
 
-      it 'should allow plugin options to be configured' do
-        # enabled
-        inputs = ['true']
-        inputs += %w()
-
-        configured_plugin_options = {}
-        output = fake_io_capture(inputs: inputs) do
-          configured_plugin_options = plugin.configure_options!
-        end
-
-        configured_plugin_options.must_equal({
-          "enabled" => true
-        })
-      end
-
       it 'should indicate when configured' do
         plugin.runner.config = valid_enabled_config
         plugin.configured?.must_equal true
       end
 
-      describe '#valid_configuration?' do
-        it 'should be trye even if config is not set' do
-          plugin.valid_configuration?.must_equal(true)
-        end
+      it 'should allow plugin options to be configured' do
+        stub_request(:post, "#{Lolcommits::Twitter::Client::API_ENDPOINT}/oauth/request_token").
+          to_return(status: 200, body: "oauth_token=mytoken&oauth_token_secret=mytokensercet&oauth_callback_confirmed=true")
 
-        it 'should be true for a valid configuration' do
-          plugin.runner.config = valid_enabled_config
-          plugin.valid_configuration?.must_equal true
+        stub_request(:post, "#{Lolcommits::Twitter::Client::API_ENDPOINT}/oauth/access_token").
+          to_return(status: 200, body: "oauth_token=oauthtoken&oauth_token_secret=oauthtokensecret&user_id=6253282&screen_name=twitterapi")
+
+        launcher = MiniTest::Mock.new
+        launcher.expect(:open_url, "https://api.twitter.com/oauth/authorize?oauth_token=mytoken")
+
+        Lolcommits::CLI::Launcher.stub :new, launcher do
+          # enabled, AUTH PIN, prefix, suffix, Yes/No auto open
+          inputs = %w(true 123456 LOL-prefix LOL-suffix Y)
+
+          configured_plugin_options = {}
+          fake_io_capture(inputs: inputs) do
+            configured_plugin_options = plugin.configure_options!
+          end
+
+          configured_plugin_options.must_equal({
+            'enabled'        => true,
+            'token'          => 'oauthtoken',
+            'token_secret'   => 'oauthtokensecret',
+            'prefix'         => 'LOL-prefix',
+            'suffix'         => 'LOL-suffix',
+            'open_tweet_url' => true
+          })
         end
+        assert_mock launcher
       end
     end
+
   end
 end

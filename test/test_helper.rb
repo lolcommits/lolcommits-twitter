@@ -22,6 +22,7 @@ end
 # plugin gem test libs
 require 'lolcommits/twitter'
 require 'minitest/autorun'
+require 'webmock/minitest'
 
 # swallow all debug output during test runs
 def debug(msg); end
