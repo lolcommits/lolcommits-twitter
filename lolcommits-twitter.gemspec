@@ -32,7 +32,7 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 2.0.0"
 
   spec.add_runtime_dependency "rest-client"
-  spec.add_runtime_dependency "simple_oauth"
+  spec.add_runtime_dependency "oauth"
   spec.add_runtime_dependency "addressable"
 
   # spec.add_development_dependency "lolcommits", ">= 0.9.5" # TODO: un-comment me

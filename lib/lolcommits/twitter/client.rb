@@ -1,5 +1,5 @@
 require 'oauth'
-require 'simple_oauth'
+require 'oauth/request_proxy/rest_client_request'
 require 'rest_client'
 require 'addressable/uri'
 
@@ -26,12 +26,7 @@ module Lolcommits
       end
 
       def initialize(token, token_secret)
-        @oauth_credentials = {
-          consumer_key: CONSUMER_KEY,
-          consumer_secret: CONSUMER_SECRET,
-          token: token,
-          token_secret: token_secret
-        }
+        @oauth_token = OAuth::Token.new(token, token_secret)
       end
 
       # @see https://dev.twitter.com/rest/reference/post/statuses/update
@@ -91,7 +86,7 @@ module Lolcommits
 
       private
 
-      attr_reader :oauth_credentials
+      attr_reader :oauth_token
 
       def upload_url
         @upload_url ||= UPLOAD_ENDPOINT + "/1.1/media/upload.json"
@@ -144,8 +139,14 @@ module Lolcommits
       end
 
       def oauth_auth_header(url, method = :get)
+        req = RestClient::Request.new(url: url, method: method)
         uri = Addressable::URI.parse(url)
-        SimpleOAuth::Header.new(method, uri, {}, oauth_credentials)
+
+        OAuth::Client::Helper.new(req, {
+          consumer: self.class.oauth_consumer,
+          token: oauth_token,
+          request_uri: uri
+        }).header
       end
     end
   end
