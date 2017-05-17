@@ -14,7 +14,7 @@ describe Lolcommits::Plugin::Twitter do
   end
 
   it 'should run on post capturing' do
-    ::Lolcommits::Plugin::Twitter.runner_order.must_equal [:captureready]
+    ::Lolcommits::Plugin::Twitter.runner_order.must_equal [:capture_ready]
   end
 
   describe 'with a runner' do

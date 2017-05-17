@@ -19,12 +19,13 @@ module Lolcommits
 
       ##
       # Returns position(s) of when this plugin should run during the capture
-      # process. We want to post to Twitter when the capture is ready.
+      # process. We want to post to Twitter when the capture is ready (after all
+      # image processing is complete).
       #
       # @return [Array] the position(s)
       #
       def self.runner_order
-        [:captureready]
+        [:capture_ready]
       end
 
       ##
@@ -65,7 +66,7 @@ module Lolcommits
       # Posts the lolcommit to Twitter, first uploading the capture media, then
       # posting a new Tweet with the media_id attached.
       #
-      def run_captureready
+      def run_capture_ready
         status = build_tweet(runner.message)
         file   = File.open(runner.main_image, 'rb')
 
