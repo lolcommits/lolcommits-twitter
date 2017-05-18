@@ -129,8 +129,6 @@ module Lolcommits
         puts '-----------------------------------'
 
         request_token = twitter_client.oauth_consumer.get_request_token
-        rtoken        = request_token.token
-        rsecret       = request_token.secret
         authorize_url = request_token.authorize_url
 
         open_url(authorize_url)
