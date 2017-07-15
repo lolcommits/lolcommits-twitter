@@ -26,3 +26,8 @@ require 'webmock/minitest'
 
 # swallow all debug output during test runs
 def debug(msg); end
+
+# do not launch URLs
+class Lolcommits::CLI::Launcher
+  def self.open_url(url);  end
+end
