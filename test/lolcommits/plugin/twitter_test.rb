@@ -80,30 +80,23 @@ describe Lolcommits::Plugin::Twitter do
         stub_request(:post, "#{Lolcommits::Twitter::Client::API_ENDPOINT}/oauth/access_token").
           to_return(status: 200, body: "oauth_token=oauthtoken&oauth_token_secret=oauthtokensecret&user_id=6253282&screen_name=twitterapi")
 
-        launcher = MiniTest::Mock.new
-        launcher.expect(:open_url, "https://api.twitter.com/oauth/authorize?oauth_token=mytoken")
+        # enabled, AUTH PIN, prefix, suffix, Yes/No auto open
+        inputs = %w(true 123456 LOL-prefix LOL-suffix Y)
 
-        Lolcommits::CLI::Launcher.stub :new, launcher do
-          # enabled, AUTH PIN, prefix, suffix, Yes/No auto open
-          inputs = %w(true 123456 LOL-prefix LOL-suffix Y)
-
-          configured_plugin_options = {}
-          fake_io_capture(inputs: inputs) do
-            configured_plugin_options = plugin.configure_options!
-          end
-
-          configured_plugin_options.must_equal({
-            'enabled'        => true,
-            'token'          => 'oauthtoken',
-            'token_secret'   => 'oauthtokensecret',
-            'prefix'         => 'LOL-prefix',
-            'suffix'         => 'LOL-suffix',
-            'open_tweet_url' => true
-          })
+        configured_plugin_options = {}
+        fake_io_capture(inputs: inputs) do
+          configured_plugin_options = plugin.configure_options!
         end
-        assert_mock launcher
+
+        configured_plugin_options.must_equal({
+          'enabled'        => true,
+          'token'          => 'oauthtoken',
+          'token_secret'   => 'oauthtokensecret',
+          'prefix'         => 'LOL-prefix',
+          'suffix'         => 'LOL-suffix',
+          'open_tweet_url' => true
+        })
       end
     end
-
   end
 end
