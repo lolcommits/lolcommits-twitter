@@ -20,17 +20,13 @@ describe Lolcommits::Plugin::Twitter do
   describe 'with a runner' do
     def runner
       # a simple lolcommits runner with an empty configuration Hash
-      @runner ||= Lolcommits::Runner.new(
+      @_runner ||= Lolcommits::Runner.new(
         config: OpenStruct.new(read_configuration: {})
       )
     end
 
-    def plugin
-      @plugin ||= Lolcommits::Plugin::Twitter.new(runner)
-    end
-
     def valid_enabled_config
-      @config ||= OpenStruct.new(
+      @_valid_enabled_config ||= OpenStruct.new(
         read_configuration: {
           plugin.class.name => {
             'enabled'      => true,
@@ -39,6 +35,10 @@ describe Lolcommits::Plugin::Twitter do
           }
         }
       )
+    end
+
+    def plugin
+      Lolcommits::Plugin::Twitter.new(runner)
     end
 
     def twitter_client
@@ -58,7 +58,7 @@ describe Lolcommits::Plugin::Twitter do
       end
 
       it 'should true when configured' do
-        plugin.runner.config = valid_enabled_config
+        runner.config = valid_enabled_config
         plugin.enabled?.must_equal true
       end
     end
@@ -69,7 +69,7 @@ describe Lolcommits::Plugin::Twitter do
       end
 
       it 'should indicate when configured' do
-        plugin.runner.config = valid_enabled_config
+        runner.config = valid_enabled_config
         plugin.configured?.must_equal true
       end
 
