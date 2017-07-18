@@ -38,7 +38,7 @@ describe Lolcommits::Plugin::Twitter do
     end
 
     def plugin
-      @_plugin ||= Lolcommits::Plugin::Twitter.new(runner)
+      @_plugin ||= Lolcommits::Plugin::Twitter.new(runner: runner)
     end
 
     def twitter_client
