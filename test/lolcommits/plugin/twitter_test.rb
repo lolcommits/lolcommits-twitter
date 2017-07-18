@@ -38,7 +38,7 @@ describe Lolcommits::Plugin::Twitter do
     end
 
     def plugin
-      Lolcommits::Plugin::Twitter.new(runner)
+      @_plugin ||= Lolcommits::Plugin::Twitter.new(runner)
     end
 
     def twitter_client
@@ -58,7 +58,7 @@ describe Lolcommits::Plugin::Twitter do
       end
 
       it 'should true when configured' do
-        runner.config = valid_enabled_config
+        plugin.config = valid_enabled_config
         plugin.enabled?.must_equal true
       end
     end
@@ -69,7 +69,7 @@ describe Lolcommits::Plugin::Twitter do
       end
 
       it 'should indicate when configured' do
-        runner.config = valid_enabled_config
+        plugin.config = valid_enabled_config
         plugin.configured?.must_equal true
       end
 
