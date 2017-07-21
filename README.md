@@ -11,11 +11,10 @@ every time you git commit code, and archives a lolcat style image with it. Git
 blame has never been so much fun!
 
 This plugin automatically posts your Lolcommit to Twitter. The tweet features
-your commit message (shortened) and the lolcommit image (along with some
-optional prefix or postfix text). Check out the [#lolcommits
-hashtag](https://twitter.com/hashtag/lolcommits) for examples.
-
-You can optionally open the new tweet in your default browser.
+your commit message (shortened, with some optional surrounding text) and the
+captured image. See the [#lolcommits](https://twitter.com/hashtag/lolcommits)
+hash tag for some examples in the wild. You can also configure the plugin to
+auto-open the tweet in your default browser.
 
 ## Requirements
 
@@ -30,10 +29,14 @@ After installing the lolcommits gem, install this plugin with:
 
     $ gem install lolcommits-twitter
 
-Next configure the plugin to authenticate with Twitter and set tweeting options.
+The configure the plugin to enable it and auth with Twitter
 
     $ lolcommits --config -p twitter
     # set enabled to `true` (then set your own options or choose the defaults)
+
+*NOTE*: if you enable this plugin on another repository you may want to copy the
+credentials from `~/.lolcommits/{your-repo}/config.yml` (so Twitter does not
+de-authorize the connection).
 
 ### Configuration
 
@@ -43,11 +46,13 @@ The following options are available:
 * suffix (default: #lolcommits)
 * auto-open tweet url?
 
-You can always reconfigure the plugin without having to re-authenicate with
-Twitter.
+You can always reconfigure the plugin later, to change these options without
+having to re-authenicate with Twitter.
 
-To disable - set `enabled: false` and you can always revoke access to your
-twitter account [here](https://twitter.com/settings/applications).
+To disable - set `enabled: false` and revoke plugin access to your twitter
+account [here](https://twitter.com/settings/applications).
+
+
 
 ## Development
 
