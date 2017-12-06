@@ -40,7 +40,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake"
   spec.add_development_dependency "minitest"
   spec.add_development_dependency "simplecov"
-  spec.add_development_dependency "coveralls"
   spec.add_development_dependency "webmock"
   spec.add_development_dependency "pry"
 end
