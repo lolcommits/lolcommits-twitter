@@ -4,36 +4,21 @@ describe Lolcommits::Plugin::Twitter do
 
   include Lolcommits::TestHelpers::FakeIO
 
-  def plugin_name
-    'twitter'
-  end
-
-  it 'should have a name' do
-    ::Lolcommits::Plugin::Twitter.name.must_equal plugin_name
-  end
-
   it 'should run on post capturing' do
     ::Lolcommits::Plugin::Twitter.runner_order.must_equal [:capture_ready]
   end
 
   describe 'with a runner' do
     def runner
-      # a simple lolcommits runner with an empty configuration Hash
-      @_runner ||= Lolcommits::Runner.new(
-        config: OpenStruct.new(read_configuration: {})
-      )
+      @_runner ||= Lolcommits::Runner.new
     end
 
     def valid_enabled_config
-      @_valid_enabled_config ||= OpenStruct.new(
-        read_configuration: {
-          plugin.class.name => {
-            'enabled'      => true,
-            'token'        => 'abc-xyz',
-            'token_secret' => '123XYZ'
-          }
-        }
-      )
+      {
+        enabled: true,
+        token: 'abc-xyz',
+        token_secret: '123XYZ'
+      }
     end
 
     def plugin
@@ -44,32 +29,25 @@ describe Lolcommits::Plugin::Twitter do
       Lolcommits::Twitter::Client
     end
 
-    describe 'initalizing' do
-      it 'should assign runner and an enabled option' do
-        plugin.runner.must_equal runner
-        plugin.options.must_equal ['enabled']
-      end
-    end
-
     describe '#enabled?' do
       it 'should be false by default' do
-        plugin.enabled?.must_equal false
+        assert_nil plugin.enabled?
       end
 
       it 'should true when configured' do
-        plugin.config = valid_enabled_config
+        plugin.configuration = valid_enabled_config
         plugin.enabled?.must_equal true
       end
     end
 
     describe 'configuration' do
-      it 'should not be configured by default' do
-        plugin.configured?.must_equal false
+      it 'should not have a valid config by default' do
+        plugin.valid_configuration?.must_equal false
       end
 
-      it 'should indicate when configured' do
-        plugin.config = valid_enabled_config
-        plugin.configured?.must_equal true
+      it 'should indicate when configured correctly' do
+        plugin.configuration = valid_enabled_config
+        plugin.valid_configuration?.must_equal true
       end
 
       it 'should allow plugin options to be configured' do
@@ -88,12 +66,12 @@ describe Lolcommits::Plugin::Twitter do
         end
 
         configured_plugin_options.must_equal({
-          'enabled'        => true,
-          'token'          => 'oauthtoken',
-          'token_secret'   => 'oauthtokensecret',
-          'prefix'         => 'LOL-prefix',
-          'suffix'         => 'LOL-suffix',
-          'open_tweet_url' => true
+          enabled: true,
+          token: 'oauthtoken',
+          token_secret: 'oauthtokensecret',
+          prefix: 'LOL-prefix',
+          suffix: 'LOL-suffix',
+          open_tweet_url: true
         })
       end
     end
