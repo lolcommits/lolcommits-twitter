@@ -9,15 +9,6 @@ module Lolcommits
       DEFAULT_SUFFIX  = '#lolcommits'.freeze
 
       ##
-      # Returns the name of the plugin. Identifies the plugin to lolcommits.
-      #
-      # @return [String] the plugin name
-      #
-      def self.name
-        'twitter'
-      end
-
-      ##
       # Returns position(s) of when this plugin should run during the capture
       # process. We want to post to Twitter when the capture is ready (after all
       # image processing is complete).
@@ -29,12 +20,12 @@ module Lolcommits
       end
 
       ##
-      # Plugin is configured when a token and token secret exist
+      # Indicate if the plugin is configured correctly.
       #
-      # @return [Boolean] true/false if the plugin has been configured
+      # @return [Boolean] true/false
       #
-      def configured?
-        !!(configuration['token'] && configuration['token_secret'])
+      def valid_configuration?
+        !!(configuration[:token] && configuration[:token_secret])
       end
 
       ##
@@ -46,7 +37,7 @@ module Lolcommits
       def configure_options!
         options = super
         # ask user to configure all options (if enabling)
-        if options['enabled']
+        if options[:enabled]
           auth_config = configure_auth!
           return unless auth_config
           options = options.merge(auth_config).
@@ -74,8 +65,8 @@ module Lolcommits
 
         begin
           client = twitter_client.new(
-            configuration['token'],
-            configuration['token_secret']
+            configuration[:token],
+            configuration[:token_secret]
           )
 
           debug "--> Uploading media (#{file.size} bytes)"
@@ -85,7 +76,7 @@ module Lolcommits
 
           tweet_url = status_response['entities']['media'][0]['url']
           print "#{tweet_url}\n"
-          open_url(tweet_url) if configuration['open_tweet_url']
+          open_url(tweet_url) if configuration[:open_tweet_url]
         rescue StandardError => e
           puts "ERROR: Tweeting FAILED! - #{e.message}"
         end
@@ -98,10 +89,10 @@ module Lolcommits
       end
 
       def build_tweet(commit_message)
-        prefix = configuration['prefix'].to_s
-        suffix = configuration['suffix'].to_s
-        prefix = "#{configuration['prefix']} " unless prefix.empty?
-        suffix = " #{configuration['suffix']}" unless suffix.empty?
+        prefix = configuration[:prefix].to_s
+        suffix = configuration[:suffix].to_s
+        prefix = "#{configuration[:prefix]} " unless prefix.empty?
+        suffix = " #{configuration[:suffix]}" unless suffix.empty?
 
         available_commit_msg_size = twitter_client::MAX_TWEET_CHARS - (prefix.length + suffix.length)
         if commit_message.length > available_commit_msg_size
@@ -118,9 +109,9 @@ module Lolcommits
       end
 
       def configure_auth!
-        if configured?
+        if valid_configuration?
           print "\n* Reset Twitter Auth ? (y/N): "
-          return configuration.select {|k,v| k =~ /^token/ } if !ask_yes_or_no?
+          return configuration.select {|k,v| k.to_s =~ /^token/ } if !ask_yes_or_no?
         end
 
         puts ''
@@ -129,8 +120,6 @@ module Lolcommits
         puts '-----------------------------------'
 
         request_token = twitter_client.oauth_consumer.get_request_token
-        rtoken        = request_token.token
-        rsecret       = request_token.secret
         authorize_url = request_token.authorize_url
 
         open_url(authorize_url)
@@ -156,8 +145,8 @@ module Lolcommits
         puts '-----------------------------------'
 
         {
-          'token'        => access_token.token,
-          'token_secret' => access_token.secret
+          token: access_token.token,
+          token_secret: access_token.secret
         }
       end
 
@@ -168,14 +157,14 @@ module Lolcommits
         suffix = gets.strip
 
         config = {}
-        config['prefix'] = prefix.empty? ? '' : prefix
-        config['suffix'] = suffix.empty? ? DEFAULT_SUFFIX : suffix
+        config[:prefix] = prefix.empty? ? '' : prefix
+        config[:suffix] = suffix.empty? ? DEFAULT_SUFFIX : suffix
         config
       end
 
       def configure_open_tweet_url
         print "\n* Automatically open Tweet URL after posting (y/N): "
-        { 'open_tweet_url' => ask_yes_or_no? }
+        { open_tweet_url:  ask_yes_or_no? }
       end
 
       def open_url(url)
