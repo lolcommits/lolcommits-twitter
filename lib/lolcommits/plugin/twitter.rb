@@ -9,17 +9,6 @@ module Lolcommits
       DEFAULT_SUFFIX  = '#lolcommits'.freeze
 
       ##
-      # Returns position(s) of when this plugin should run during the capture
-      # process. We want to post to Twitter when the capture is ready (after all
-      # image processing is complete).
-      #
-      # @return [Array] the position(s)
-      #
-      def self.runner_order
-        [:capture_ready]
-      end
-
-      ##
       # Indicate if the plugin is configured correctly.
       #
       # @return [Boolean] true/false

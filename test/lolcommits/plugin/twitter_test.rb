@@ -4,10 +4,6 @@ describe Lolcommits::Plugin::Twitter do
 
   include Lolcommits::TestHelpers::FakeIO
 
-  it 'should run on post capturing' do
-    ::Lolcommits::Plugin::Twitter.runner_order.must_equal [:capture_ready]
-  end
-
   describe 'with a runner' do
     def runner
       @_runner ||= Lolcommits::Runner.new
@@ -30,27 +26,27 @@ describe Lolcommits::Plugin::Twitter do
     end
 
     describe '#enabled?' do
-      it 'should be false by default' do
+      it 'returns false by default' do
         plugin.enabled?.must_equal false
       end
 
-      it 'should true when configured' do
+      it 'returns true when configured' do
         plugin.configuration = valid_enabled_config
         plugin.enabled?.must_equal true
       end
     end
 
     describe 'configuration' do
-      it 'should not have a valid config by default' do
+      it 'does not have a valid config by default' do
         plugin.valid_configuration?.must_equal false
       end
 
-      it 'should indicate when configured correctly' do
+      it 'indicates when configured correctly' do
         plugin.configuration = valid_enabled_config
         plugin.valid_configuration?.must_equal true
       end
 
-      it 'should allow plugin options to be configured' do
+      it 'allows plugin options to be configured' do
         stub_request(:post, "#{Lolcommits::Twitter::Client::API_ENDPOINT}/oauth/request_token").
           to_return(status: 200, body: "oauth_token=mytoken&oauth_token_secret=mytokensercet&oauth_callback_confirmed=true")
 
