@@ -2,7 +2,7 @@
 
 [![Gem](https://img.shields.io/gem/v/lolcommits-twitter.svg?style=flat)](http://rubygems.org/gems/lolcommits-twitter)
 [![Travis](https://travis-ci.org/lolcommits/lolcommits-twitter.svg?branch=master)](https://travis-ci.org/lolcommits/lolcommits-twitter)
-[![Depfu](https://img.shields.io/depfu/lolcommits/lolcommits-dotcom.svg?style=flat)](https://depfu.com/github/lolcommits/lolcommits-dotcom)
+[![Depfu](https://img.shields.io/depfu/lolcommits/lolcommits-twitter.svg?style=flat)](https://depfu.com/github/lolcommits/lolcommits-twitter)
 [![Maintainability](https://api.codeclimate.com/v1/badges/e6c4f22b17de9df4e3da/maintainability)](https://codeclimate.com/github/lolcommits/lolcommits-twitter/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/e6c4f22b17de9df4e3da/test_coverage)](https://codeclimate.com/github/lolcommits/lolcommits-twitter/test_coverage)
 
