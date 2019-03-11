@@ -100,6 +100,16 @@ Covenant](http://contributor-covenant.org) code of conduct. See
 [here](https://github.com/lolcommits/lolcommits-twitter/blob/master/CODE_OF_CONDUCT.md)
 for more details.
 
+## TODO
+
+- [ ] Refactor Client to include Request/Response classes (see twitter gem approach)
+- [ ] Tests for Client lib classes
+- [ ] Tests for Plugin class (port tests from lolcommits)
+- [ ] Test running `capture_ready` method (stub with webmock?)
+- [ ] Correctly stub out launcher, or have it do nothing in tests
+- [ ] Update README
+- [ ] Check gem dependencies are correct
+
 ## License
 
 The gem is available as open source under the terms of
