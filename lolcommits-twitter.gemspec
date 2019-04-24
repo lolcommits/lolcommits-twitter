@@ -1,18 +1,16 @@
-# coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'lolcommits/twitter/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "lolcommits-twitter"
-  spec.version       = Lolcommits::Twitter::VERSION
-  spec.authors       = ["Matthew Hutchinson"]
-  spec.email         = ["matt@hiddenloop.com"]
-  spec.summary       = %q{Post lolcommits to Twitter}
-  spec.description   = %q{Automatically tweet your lolcommits}
-
-  spec.homepage      = "https://github.com/lolcommits/lolcommits-twitter"
-  spec.license       = "LGPL-3"
+  spec.name        = "lolcommits-twitter"
+  spec.version     = Lolcommits::Twitter::VERSION
+  spec.authors     = ["Matthew Hutchinson"]
+  spec.email       = ["matt@hiddenloop.com"]
+  spec.summary     = %q{Post lolcommits to Twitter}
+  spec.homepage    = "https://github.com/lolcommits/lolcommits-twitter"
+  spec.license     = "LGPL-3"
+  spec.description = %q{Automatically tweet your lolcommits}
 
   spec.metadata = {
     "homepage_uri"    => "https://github.com/lolcommits/lolcommits-twitter",
