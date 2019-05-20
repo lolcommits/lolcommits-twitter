@@ -2,12 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog][KeepAChangelog] and this project
-adheres to [Semantic Versioning][Semver].
+The format is based on [Keep a Changelog][KeepAChangelog] and this
+project adheres to [Semantic Versioning][Semver].
 
 ## [Unreleased]
 
 - Your contribution here!
+
+## [0.3.0] - 2019-05-20
+### Changed
+- lolcommits gem is a runtime dependency
+- Use `lolcommit_path` (instead of `main_image`)
+- Requires at least lolcommits >= `0.14.2`
+- Updated README and gemspec
+
+### Removed
+- Support for lolcommits < `0.14.2`
 
 ## [0.2.0] - 2019-04-24
 ### Removed
