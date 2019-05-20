@@ -21,7 +21,8 @@ module Lolcommits
 
       ##
       # Prompts the user to configure plugin options.
-      # Options are enabled (true/false), Twitter auth, and prefix/suffix text.
+      # Options are enabled (true/false), Twitter auth, and
+      # prefix/suffix text.
       #
       # @return [Hash] a hash of configured plugin options
       #
@@ -42,15 +43,20 @@ module Lolcommits
       end
 
       ##
-      # Capture ready hook, runs after lolcommits captures a snapshot and image
-      # processing has completed.
+      # Capture ready hook, runs after lolcommits captures a snapshot
+      # and image processing has completed.
       #
-      # Posts the lolcommit to Twitter, first uploading the capture media, then
-      # posting a new Tweet with the media_id attached.
+      # Posts the lolcommit to Twitter, first uploading the capture
+      # media, then posting a new Tweet with the media_id attached.
       #
       def run_capture_ready
+        if runner.capture_video && !runner.capture_gif
+          debug "unable to post lolcommit videos, (gif's and jpgs only)"
+          return
+        end
+
         status = build_tweet(runner.message)
-        file   = File.open(runner.main_image, 'rb')
+        file   = File.open(image_path, 'rb')
 
         print "Tweeting ... "
 
@@ -74,6 +80,10 @@ module Lolcommits
       end
 
       private
+
+      def image_path
+        runner.capture_image? ? runner.lolcommit_path : runner.lolcommit_gif_path
+      end
 
       def twitter_client
         Lolcommits::Twitter::Client
