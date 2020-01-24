@@ -29,23 +29,23 @@ describe Lolcommits::Plugin::Twitter do
 
     describe '#enabled?' do
       it 'returns false by default' do
-        plugin.enabled?.must_equal false
+        _(plugin.enabled?).must_equal false
       end
 
       it 'returns true when configured' do
         plugin.configuration = valid_enabled_config
-        plugin.enabled?.must_equal true
+        _(plugin.enabled?).must_equal true
       end
     end
 
     describe 'configuration' do
       it 'does not have a valid config by default' do
-        plugin.valid_configuration?.must_equal false
+        _(plugin.valid_configuration?).must_equal false
       end
 
       it 'indicates when configured correctly' do
         plugin.configuration = valid_enabled_config
-        plugin.valid_configuration?.must_equal true
+        _(plugin.valid_configuration?).must_equal true
       end
 
       it 'allows plugin options to be configured' do
@@ -63,7 +63,7 @@ describe Lolcommits::Plugin::Twitter do
           configured_plugin_options = plugin.configure_options!
         end
 
-        configured_plugin_options.must_equal({
+        _(configured_plugin_options).must_equal({
           enabled: true,
           token: 'oauthtoken',
           token_secret: 'oauthtokensecret',
